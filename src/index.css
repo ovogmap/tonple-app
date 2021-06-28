@@ -24,3 +24,14 @@ button {
   background: initial;
   cursor: pointer;
 }
+
+ul,
+li,
+ol {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+  color: #333;
+}

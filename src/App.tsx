@@ -20,7 +20,7 @@ export default function App() {
           <Route path="/detail/:id">
             <Detail />
           </Route>
-          <Redirect to="/" path="*" />
+          {/* <Redirect to="/" path="*" /> */}
         </Switch>
       </Layout>
     </Router>
