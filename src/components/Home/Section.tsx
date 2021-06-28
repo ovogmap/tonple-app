@@ -3,10 +3,12 @@ import styled from 'styled-components'
 import { Link } from 'react-router-dom'
 
 import { colors } from '../../constants/colors'
+import PostType from '../../interface/post.interface'
 
 type SectionProps = {
   isFocus: boolean
   inputRef: React.MutableRefObject<HTMLInputElement | null>
+  posts: PostType[]
   inputFocus: () => void
   onFocus: () => void
   onBlur: () => void
@@ -15,6 +17,7 @@ type SectionProps = {
 export default function Section({
   isFocus,
   inputRef,
+  posts,
   inputFocus,
   onFocus,
   onBlur,
@@ -39,27 +42,16 @@ export default function Section({
           <TapBtn active={false}>B Posts</TapBtn>
         </Tap>
         <Ul>
-          <Link to="/">
-            <Li>
-              <h3>
-                <b>1.</b> Rerum voluptatibus et doloremque.
-              </h3>
-              <p>
-                Ut ut et omnis. Ipsam nihil suscipit. Omnis dolorum at quidem.
-                Omnis sapiente beatae neque facilis ipsum suscipit aut. Id
-                voluptatum iusto rerum voluptatibus. Sed commodi ea quaerat
-                ipsum esse quis cum ducimus dicta. Enim quia ut velit velit
-                quaerat non laudantium. Eveniet voluptates et repellendus
-                aperiam et recusandae dolorum. Vel quisquam et aut sint
-                cupiditate debitis sed. Delectus voluptatem et explicabo quia
-                ullam sunt quos. Accusantium neque et possimus quo voluptatum. A
-                voluptatem minima ut in dolor.
-              </p>
-            </Li>
-          </Link>
-          <Link to="/">
-            <Li>b-posts</Li>
-          </Link>
+          {posts?.map((post, i) => (
+            <Link to={`/detail/${post.id}`} key={post.id}>
+              <Li>
+                <h3>
+                  <b>{post.id}.</b> {post.title}
+                </h3>
+                <p>{post.content}</p>
+              </Li>
+            </Link>
+          ))}
         </Ul>
       </article>
     </Main>
@@ -93,6 +85,7 @@ const Li = styled.li`
     font-weight: 400;
     font-size: 1rem;
     margin-bottom: 10px;
+    color: #000;
   }
 
   b {
