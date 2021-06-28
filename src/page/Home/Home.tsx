@@ -14,7 +14,8 @@ export default function Home({}: HomeProps): React.ReactElement {
   const [isFocus, setIsFocus] = useState(false)
   const [type, setType] = useState('a-posts')
 
-  const [page, setPage] = useState(0)
+  const pageRef = useRef<number>(0)
+
   const inputRef = useRef<HTMLInputElement | null>(null)
 
   const inputFocus = () => {
@@ -34,24 +35,48 @@ export default function Home({}: HomeProps): React.ReactElement {
   const asyncFetchData = useCallback(async (type: string, page: number) => {
     const res = await fetchPosts(type, page).then((v) => v.data)
     setPosts((posts) => [...posts, ...res])
+    pageRef.current = pageRef.current + 1
   }, [])
 
-  const plusPageNum = () => {
-    setPage((v) => v++)
-  }
-  // console.log(page)
-
   const onClick = async () => {
-    const res = plusPageNum()
-    await asyncFetchData(type, page)
+    await asyncFetchData(type, pageRef.current)
   }
 
   useEffect(() => {
-    asyncFetchData(type, page)
-    console.log('마운트')
+    asyncFetchData(type, 0)
+  }, [asyncFetchData, type])
 
-    return () => console.log('언마운트')
-  }, [asyncFetchData, type, page])
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null
+    window.addEventListener('scroll', () => {
+      if (!timer) {
+        timer = setTimeout(function () {
+          timer = null
+          if (
+            window.innerHeight + window.scrollY >=
+            document.body.offsetHeight
+          ) {
+            console.log('test')
+            asyncFetchData(type, pageRef.current)
+          }
+        }, 1000)
+      }
+    })
+
+    return window.removeEventListener('scroll', () => {})
+  }, [asyncFetchData, type])
+
+  useEffect(() => {
+    console.log(pageRef.current)
+  }, [pageRef])
+  // const { scrollHeight } = e.currentTarget
+  // 	const { scrollTop } = e.currentTarget
+  // 	const { clientHeight } = e.currentTarget
+
+  // 	// 데이터 요청
+  // 	if (scrollTop + clientHeight >= scrollHeight) {
+  // 		fetchAdditionalLocations(inputData.input, page)
+  // 	}
 
   return (
     <Container>
