@@ -9,18 +9,37 @@ type SectionProps = {
   isFocus: boolean
   inputRef: React.MutableRefObject<HTMLInputElement | null>
   posts: PostType[]
+  type: string
+  input: string
   inputFocus: () => void
   onFocus: () => void
   onBlur: () => void
+  handleTypeChange: (currentType: string) => void
+  onChange: (e: any) => void
 }
+
+const tabList = [
+  {
+    title: 'A Posts',
+    value: 'a-posts',
+  },
+  {
+    title: 'B Posts',
+    value: 'b-posts',
+  },
+]
 
 export default function Section({
   isFocus,
   inputRef,
+  input,
   posts,
+  type,
   inputFocus,
   onFocus,
   onBlur,
+  handleTypeChange,
+  onChange,
 }: SectionProps) {
   return (
     <Main>
@@ -31,19 +50,28 @@ export default function Section({
             ref={inputRef}
             onFocus={onFocus}
             onBlur={onBlur}
+            value={input}
+            onChange={onChange}
             type="text"
             placeholder="검색어를 입력하세요"
           />
         </Form>
       </article>
       <article>
-        <Tap>
-          <TapBtn active={true}>A Posts</TapBtn>
-          <TapBtn active={false}>B Posts</TapBtn>
-        </Tap>
+        <Tab>
+          {tabList.map((tab) => (
+            <TabBtn
+              key={tab.value}
+              onClick={() => handleTypeChange(tab.value)}
+              active={tab.value === type}
+            >
+              {tab.title}
+            </TabBtn>
+          ))}
+        </Tab>
         <Ul>
           {posts?.map((post, i) => (
-            <Link to={`/detail/${post.id}`} key={post.id}>
+            <Link to={`/detail/${post.type}?id=${post.id}`} key={post.id}>
               <Li>
                 <h3>
                   <b>{post.id}.</b> {post.title}
@@ -109,12 +137,12 @@ const Li = styled.li`
   }
 `
 
-const Tap = styled.div`
+const Tab = styled.div`
   border-bottom: 1px solid ${colors.line};
   margin-bottom: 20px;
 `
 
-const TapBtn = styled.button<{ active: boolean }>`
+const TabBtn = styled.button<{ active: boolean }>`
   padding: 15px 15px;
   border-radius: 5px;
   color: ${(props) => (props.active ? colors.main : colors.default)};

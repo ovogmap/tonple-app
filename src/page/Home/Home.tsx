@@ -6,17 +6,39 @@ import styled from 'styled-components'
 import { Section, Header } from '../../components/Home'
 import fetchPosts from '../../api/fetchPosts'
 import PostType from '../../interface/post.interface'
+import fetchSearchPost from '../../api/fetchSearchPost'
 
-export type HomeProps = {}
+import { useDispatchContext, useStateContext } from '../../App.Context'
 
-export default function Home({}: HomeProps): React.ReactElement {
+export default function Home(): React.ReactElement {
+  const state = useStateContext()
+  const dispatch = useDispatchContext()
+
+  console.log(state)
+
   const [posts, setPosts] = useState<PostType[]>([])
   const [isFocus, setIsFocus] = useState(false)
   const [type, setType] = useState('a-posts')
+  const [input, setinput] = useState('')
 
   const pageRef = useRef<number>(0)
 
   const inputRef = useRef<HTMLInputElement | null>(null)
+
+  const handleTypeChange = (value: string) => {
+    setType(value)
+  }
+
+  const search = async (value: string) => {
+    const res = await fetchSearchPost(type, value).then((v) => v.data)
+    setPosts(res)
+  }
+
+  const onChange = (e: any) => {
+    const { value } = e.target
+    setinput(value)
+    search(value)
+  }
 
   const inputFocus = () => {
     if (inputRef.current) {
@@ -32,55 +54,47 @@ export default function Home({}: HomeProps): React.ReactElement {
     setIsFocus(false)
   }
 
-  const asyncFetchData = useCallback(async (type: string, page: number) => {
+  const asyncFetchData = async (type: string, page: number) => {
+    if (page > 9) return
     const res = await fetchPosts(type, page).then((v) => v.data)
     setPosts((posts) => [...posts, ...res])
-    pageRef.current = pageRef.current + 1
-  }, [])
-
-  const onClick = async () => {
-    await asyncFetchData(type, pageRef.current)
+    dispatch({ type: 'SET_POSTS', payload: res })
+    pageRef.current += 1
   }
 
-  useEffect(() => {
-    asyncFetchData(type, 0)
-  }, [asyncFetchData, type])
+  const fetchDataList = useCallback(async (type: string, page: number) => {
+    const res = await fetchPosts(type, page).then((v) => v.data)
+    setPosts(res)
+    dispatch({ type: 'SET_POSTS', payload: res })
+    pageRef.current += 1
+  }, [])
+
+  const scrollEvent = useCallback((currtype: string) => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+      asyncFetchData(currtype, pageRef.current)
+    }
+  }, [])
 
   useEffect(() => {
-    let timer: NodeJS.Timeout | null
-    window.addEventListener('scroll', () => {
-      if (!timer) {
-        timer = setTimeout(function () {
-          timer = null
-          if (
-            window.innerHeight + window.scrollY >=
-            document.body.offsetHeight
-          ) {
-            console.log('test')
-            asyncFetchData(type, pageRef.current)
-          }
-        }, 1000)
-      }
-    })
+    if (state.posts.length) return
+    fetchDataList(type, 0)
+    pageRef.current = 0
+  }, [fetchDataList, type, state.posts.length])
 
-    return window.removeEventListener('scroll', () => {})
-  }, [asyncFetchData, type])
+  // TODO: 윈도우 이벤트에 하면 안되겠는데 ??
+
+  useEffect(() => {
+    window.addEventListener('scroll', () => scrollEvent(type))
+
+    return () => window.removeEventListener('scroll', () => scrollEvent(type))
+  }, [type, scrollEvent])
 
   useEffect(() => {
     console.log(pageRef.current)
   }, [pageRef])
-  // const { scrollHeight } = e.currentTarget
-  // 	const { scrollTop } = e.currentTarget
-  // 	const { clientHeight } = e.currentTarget
-
-  // 	// 데이터 요청
-  // 	if (scrollTop + clientHeight >= scrollHeight) {
-  // 		fetchAdditionalLocations(inputData.input, page)
-  // 	}
 
   return (
     <Container>
-      <button onClick={onClick}>test</button>
       <Header title="게시물을 검색해보세요" />
       <Section
         isFocus={isFocus}
@@ -88,7 +102,11 @@ export default function Home({}: HomeProps): React.ReactElement {
         inputFocus={inputFocus}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        posts={posts}
+        posts={state.posts}
+        input={input}
+        onChange={onChange}
+        type={type}
+        handleTypeChange={handleTypeChange}
       />
     </Container>
   )
