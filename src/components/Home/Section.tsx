@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom'
 import { colors } from '../../constants/colors'
 import PostType from '../../interface/post.interface'
 
+import { ReactComponent as SearchIcon } from '../../assets/search.svg'
+
 type SectionProps = {
   isFocus: boolean
   inputRef: React.MutableRefObject<HTMLInputElement | null>
@@ -21,11 +23,11 @@ type SectionProps = {
 const tabList = [
   {
     title: 'A Posts',
-    value: 'a-posts',
+    value: 'a',
   },
   {
     title: 'B Posts',
-    value: 'b-posts',
+    value: 'b',
   },
 ]
 
@@ -45,7 +47,7 @@ export default function Section({
     <Main>
       <article>
         <Form id="form" onClick={inputFocus} isFocus={isFocus}>
-          <SearchIcon />
+          <SearchIconBox />
           <CustomInput
             ref={inputRef}
             onFocus={onFocus}
@@ -174,11 +176,11 @@ const Form = styled.div<{ isFocus: boolean }>`
   }
 `
 
-const SearchIcon = styled.div`
+const SearchIconBox = styled(SearchIcon)`
   width: 14px;
   height: 14px;
-  background: #333;
   margin-right: 14px;
+  color: #969696;
 `
 
 const CustomInput = styled.input`

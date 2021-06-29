@@ -5,7 +5,6 @@ import styled from 'styled-components'
 
 import { Section, Header } from '../../components/Home'
 import fetchPosts from '../../api/fetchPosts'
-import PostType from '../../interface/post.interface'
 import fetchSearchPost from '../../api/fetchSearchPost'
 
 import { useDispatchContext, useStateContext } from '../../App.Context'
@@ -14,13 +13,12 @@ export default function Home(): React.ReactElement {
   const state = useStateContext()
   const dispatch = useDispatchContext()
 
-  console.log(state)
-
   const [isFocus, setIsFocus] = useState(false)
 
   const inputRef = useRef<HTMLInputElement | null>(null)
 
   const handleTypeChange = (value: string) => {
+    dispatch({ type: 'SET_POSTS', payload: [] })
     dispatch({ type: 'SET_TYPE', payload: value })
   }
 
@@ -53,7 +51,7 @@ export default function Home(): React.ReactElement {
     if (state.page > 9) return
     const res = await fetchPosts(state.type, state.page).then((v) => v.data)
     dispatch({ type: 'ADDITIONAL_POSTS', payload: res })
-  }, [dispatch, state.page, state.type])
+  }, [dispatch, state.type])
 
   const scrollEvent = () => {
     if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
@@ -63,18 +61,13 @@ export default function Home(): React.ReactElement {
   }
 
   useEffect(() => {
+    // console.log('a')
     dispatch({ type: 'SET_POSTS', payload: [] })
     handleFetchPosts()
+    return () => console.log('b')
   }, [handleFetchPosts, dispatch])
 
   // TODO: 윈도우 이벤트에 하면 안되겠는데 ??
-
-  // useEffect(() => {
-  //   // window.removeEventListener('scroll', () => scrollEvent())
-  //   window.addEventListener('scroll', () => scrollEvent())
-
-  //   return () => window.removeEventListener('scroll', () => scrollEvent())
-  // }, [])
 
   return (
     <Container onScroll={() => console.log('ok')}>
