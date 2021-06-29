@@ -16,27 +16,22 @@ export default function Home(): React.ReactElement {
 
   console.log(state)
 
-  const [posts, setPosts] = useState<PostType[]>([])
   const [isFocus, setIsFocus] = useState(false)
-  const [type, setType] = useState('a-posts')
-  const [input, setinput] = useState('')
-
-  const pageRef = useRef<number>(0)
 
   const inputRef = useRef<HTMLInputElement | null>(null)
 
   const handleTypeChange = (value: string) => {
-    setType(value)
+    dispatch({ type: 'SET_TYPE', payload: value })
   }
 
   const search = async (value: string) => {
-    const res = await fetchSearchPost(type, value).then((v) => v.data)
-    setPosts(res)
+    const res = await fetchSearchPost(state.type, value).then((v) => v.data)
+    dispatch({ type: 'SET_POSTS', payload: res })
   }
 
   const onChange = (e: any) => {
     const { value } = e.target
-    setinput(value)
+    dispatch({ type: 'SET_KEYWORD', payload: value })
     search(value)
   }
 
@@ -54,47 +49,35 @@ export default function Home(): React.ReactElement {
     setIsFocus(false)
   }
 
-  const asyncFetchData = async (type: string, page: number) => {
-    if (page > 9) return
-    const res = await fetchPosts(type, page).then((v) => v.data)
-    setPosts((posts) => [...posts, ...res])
-    dispatch({ type: 'SET_POSTS', payload: res })
-    pageRef.current += 1
+  const handleFetchPosts = useCallback(async () => {
+    if (state.page > 9) return
+    const res = await fetchPosts(state.type, state.page).then((v) => v.data)
+    dispatch({ type: 'ADDITIONAL_POSTS', payload: res })
+  }, [dispatch, state.page, state.type])
+
+  const scrollEvent = () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+      handleFetchPosts()
+      dispatch({ type: 'INCREASE_PAGE' })
+    }
   }
 
-  const fetchDataList = useCallback(async (type: string, page: number) => {
-    const res = await fetchPosts(type, page).then((v) => v.data)
-    setPosts(res)
-    dispatch({ type: 'SET_POSTS', payload: res })
-    pageRef.current += 1
-  }, [])
-
-  const scrollEvent = useCallback((currtype: string) => {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-      asyncFetchData(currtype, pageRef.current)
-    }
-  }, [])
-
   useEffect(() => {
-    if (state.posts.length) return
-    fetchDataList(type, 0)
-    pageRef.current = 0
-  }, [fetchDataList, type, state.posts.length])
+    dispatch({ type: 'SET_POSTS', payload: [] })
+    handleFetchPosts()
+  }, [handleFetchPosts, dispatch])
 
   // TODO: 윈도우 이벤트에 하면 안되겠는데 ??
 
-  useEffect(() => {
-    window.addEventListener('scroll', () => scrollEvent(type))
+  // useEffect(() => {
+  //   // window.removeEventListener('scroll', () => scrollEvent())
+  //   window.addEventListener('scroll', () => scrollEvent())
 
-    return () => window.removeEventListener('scroll', () => scrollEvent(type))
-  }, [type, scrollEvent])
-
-  useEffect(() => {
-    console.log(pageRef.current)
-  }, [pageRef])
+  //   return () => window.removeEventListener('scroll', () => scrollEvent())
+  // }, [])
 
   return (
-    <Container>
+    <Container onScroll={() => console.log('ok')}>
       <Header title="게시물을 검색해보세요" />
       <Section
         isFocus={isFocus}
@@ -103,9 +86,9 @@ export default function Home(): React.ReactElement {
         onFocus={handleFocus}
         onBlur={handleBlur}
         posts={state.posts}
-        input={input}
+        input={state.keyword}
         onChange={onChange}
-        type={type}
+        type={state.type}
         handleTypeChange={handleTypeChange}
       />
     </Container>
