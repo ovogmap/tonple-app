@@ -1,23 +1,23 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import { Link } from 'react-router-dom'
 
 import { colors } from '../../constants/colors'
 import PostType from '../../interface/post.interface'
-
 import { ReactComponent as SearchIcon } from '../../assets/search.svg'
 
 type SectionProps = {
   isFocus: boolean
   inputRef: React.MutableRefObject<HTMLInputElement | null>
-  posts: PostType[]
   type: string
   input: string
+  aPosts: PostType[]
+  bPosts: PostType[]
   inputFocus: () => void
   onFocus: () => void
   onBlur: () => void
   handleTypeChange: (currentType: string) => void
-  onChange: (e: any) => void
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 const tabList = [
@@ -31,18 +31,22 @@ const tabList = [
   },
 ]
 
-export default function Section({
+function Section({
   isFocus,
   inputRef,
   input,
-  posts,
   type,
+  aPosts,
+  bPosts,
   inputFocus,
   onFocus,
   onBlur,
   handleTypeChange,
   onChange,
 }: SectionProps) {
+  const aTypePost = useMemo(() => aPosts, [aPosts])
+  const bTypePost = useMemo(() => bPosts, [bPosts])
+
   return (
     <Main>
       <article>
@@ -72,21 +76,34 @@ export default function Section({
           ))}
         </Tab>
         <Ul>
-          {posts?.map((post, i) => (
-            <Link to={`/detail/${post.type}?id=${post.id}`} key={post.id}>
-              <Li>
-                <h3>
-                  <b>{post.id}.</b> {post.title}
-                </h3>
-                <p>{post.content}</p>
-              </Li>
-            </Link>
-          ))}
+          {type === 'a'
+            ? aTypePost?.map((post, i) => (
+                <Link to={`/detail/${post.type}?id=${post.id}`} key={post.id}>
+                  <Li>
+                    <h3>
+                      <b>{post.id}.</b> {post.title}
+                    </h3>
+                    <p>{post.content}</p>
+                  </Li>
+                </Link>
+              ))
+            : bTypePost?.map((post, i) => (
+                <Link to={`/detail/${post.type}?id=${post.id}`} key={post.id}>
+                  <Li>
+                    <h3>
+                      <b>{post.id}.</b> {post.title}
+                    </h3>
+                    <p>{post.content}</p>
+                  </Li>
+                </Link>
+              ))}
         </Ul>
       </article>
     </Main>
   )
 }
+
+export default React.memo(Section)
 
 const Main = styled.main`
   width: 100%;

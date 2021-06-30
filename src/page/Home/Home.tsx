@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react'
+import React, { useCallback, useEffect, useLayoutEffect } from 'react'
 import { useState } from 'react'
 import { useRef } from 'react'
 import styled from 'styled-components'
@@ -8,29 +8,35 @@ import fetchPosts from '../../api/fetchPosts'
 import fetchSearchPost from '../../api/fetchSearchPost'
 
 import { useDispatchContext, useStateContext } from '../../App.Context'
+import { useDebouncing } from '../../hooks'
 
 export default function Home(): React.ReactElement {
   const state = useStateContext()
   const dispatch = useDispatchContext()
 
-  const [isFocus, setIsFocus] = useState(false)
-
+  const [isFocus, setIsFocus] = useState<boolean>(false)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
+  // 검색 api 디바운싱
+  const debouncing = useDebouncing()
+
   const handleTypeChange = (value: string) => {
-    dispatch({ type: 'SET_POSTS', payload: [] })
+    if (value === state.type) return
     dispatch({ type: 'SET_TYPE', payload: value })
   }
 
-  const search = async (value: string) => {
+  const searchPosts = async (value: string) => {
     const res = await fetchSearchPost(state.type, value).then((v) => v.data)
-    dispatch({ type: 'SET_POSTS', payload: res })
+    dispatch({
+      type: 'SET_POSTS',
+      payload: { type: `${state.type}Posts`, value: res },
+    })
   }
 
-  const onChange = (e: any) => {
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target
     dispatch({ type: 'SET_KEYWORD', payload: value })
-    search(value)
+    debouncing(() => searchPosts(value), 150)
   }
 
   const inputFocus = () => {
@@ -47,30 +53,62 @@ export default function Home(): React.ReactElement {
     setIsFocus(false)
   }
 
+  // 최초요청 api
   const handleFetchPosts = useCallback(async () => {
-    if (state.page > 9) return
-    const res = await fetchPosts(state.type, state.page).then((v) => v.data)
-    dispatch({ type: 'ADDITIONAL_POSTS', payload: res })
-  }, [dispatch, state.type])
+    const res = await fetchPosts(state.type, state[`${state.type}Page`]).then(
+      (v) => v.data
+    )
+    dispatch({
+      type: 'SET_POSTS',
+      payload: { type: `${state.type}Posts`, value: res },
+    })
+    dispatch({ type: 'INCREASE_PAGE', payload: state.type })
+  }, [dispatch, state])
 
-  const scrollEvent = () => {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-      handleFetchPosts()
-      dispatch({ type: 'INCREASE_PAGE' })
+  // 추가요청 api
+  const handleAdditionalFetchPosts = useCallback(async () => {
+    const res = await fetchPosts(state.type, state[`${state.type}Page`]).then(
+      (v) => v.data
+    )
+    dispatch({
+      type: 'ADDITIONAL_POSTS',
+      payload: { type: `${state.type}Posts`, value: res },
+    })
+  }, [dispatch, state])
+
+  // 스크롤이벤트
+  const scrollEvent = useCallback(async () => {
+    if (state[`${state.type}Page`] > 9) return
+    if (
+      window.innerHeight + window.scrollY ===
+      document.documentElement.scrollHeight
+    ) {
+      await handleAdditionalFetchPosts()
+      dispatch({ type: 'INCREASE_PAGE', payload: state.type })
     }
-  }
+  }, [dispatch, handleAdditionalFetchPosts, state])
+
+  useLayoutEffect(() => {
+    window.addEventListener('scroll', scrollEvent, true)
+
+    return () => window.removeEventListener('scroll', scrollEvent, true)
+  }, [state, scrollEvent])
 
   useEffect(() => {
-    // console.log('a')
-    dispatch({ type: 'SET_POSTS', payload: [] })
+    if (
+      state[`${state.type}Posts`].length > 10 ||
+      state[`${state.type}Page`] > 0
+    )
+      return
     handleFetchPosts()
-    return () => console.log('b')
-  }, [handleFetchPosts, dispatch])
+  }, [handleFetchPosts, state])
 
-  // TODO: 윈도우 이벤트에 하면 안되겠는데 ??
+  useEffect(() => {
+    console.log('state', state)
+  }, [state])
 
   return (
-    <Container onScroll={() => console.log('ok')}>
+    <Container id="home">
       <Header title="게시물을 검색해보세요" />
       <Section
         isFocus={isFocus}
@@ -78,9 +116,10 @@ export default function Home(): React.ReactElement {
         inputFocus={inputFocus}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        posts={state.posts}
-        input={state.keyword}
         onChange={onChange}
+        aPosts={state.aPosts}
+        bPosts={state.bPosts}
+        input={state.keyword}
         type={state.type}
         handleTypeChange={handleTypeChange}
       />

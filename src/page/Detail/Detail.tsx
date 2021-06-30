@@ -6,10 +6,14 @@ import { useLocation, useRouteMatch } from 'react-router-dom'
 import queryString, { ParsedQuery } from 'query-string'
 
 import fetchPostOne from '../../api/fetchPostOne'
+import { useDispatchContext, useStateContext } from '../../App.Context'
 
 export default function Detail() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+
+  const state = useStateContext()
+  const dispatch = useDispatchContext()
 
   const history = useHistory()
   const type = useRouteMatch<{ type: string }>().params.type
@@ -21,6 +25,13 @@ export default function Detail() {
     const { title, content } = res.data
     setTitle(title)
     setContent(content)
+  }
+
+  const handleGoBack = () => {
+    history.goBack()
+    if (state.page === 1) {
+      dispatch({ type: 'RESET_PAGE' })
+    }
   }
 
   useEffect(() => {
@@ -35,7 +46,7 @@ export default function Detail() {
         <h2>{title}</h2>
         <p>{content}</p>
       </Content>
-      <BackBtn onClick={() => history.push('/')}>뒤로가기</BackBtn>
+      <BackBtn onClick={handleGoBack}>뒤로가기</BackBtn>
     </Container>
   )
 }
