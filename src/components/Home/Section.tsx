@@ -13,10 +13,11 @@ type SectionProps = {
   input: string
   aPosts: PostType[]
   bPosts: PostType[]
+  sPosts: PostType[]
   inputFocus: () => void
   onFocus: () => void
   onBlur: () => void
-  handleTypeChange: (currentType: string) => void
+  handleTabChange: (currentType: string) => void
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
@@ -38,14 +39,16 @@ function Section({
   type,
   aPosts,
   bPosts,
+  sPosts,
   inputFocus,
   onFocus,
   onBlur,
-  handleTypeChange,
+  handleTabChange,
   onChange,
 }: SectionProps) {
   const aTypePost = useMemo(() => aPosts, [aPosts])
   const bTypePost = useMemo(() => bPosts, [bPosts])
+  const sTypePost = useMemo(() => sPosts, [sPosts])
 
   return (
     <Main>
@@ -68,7 +71,7 @@ function Section({
           {tabList.map((tab) => (
             <TabBtn
               key={tab.value}
-              onClick={() => handleTypeChange(tab.value)}
+              onClick={() => handleTabChange(tab.value)}
               active={tab.value === type}
             >
               {tab.title}
@@ -76,27 +79,41 @@ function Section({
           ))}
         </Tab>
         <Ul>
-          {type === 'a'
-            ? aTypePost?.map((post, i) => (
-                <Link to={`/detail/${post.type}?id=${post.id}`} key={post.id}>
-                  <Li>
-                    <h3>
-                      <b>{post.id}.</b> {post.title}
-                    </h3>
-                    <p>{post.content}</p>
-                  </Li>
-                </Link>
-              ))
-            : bTypePost?.map((post, i) => (
-                <Link to={`/detail/${post.type}?id=${post.id}`} key={post.id}>
-                  <Li>
-                    <h3>
-                      <b>{post.id}.</b> {post.title}
-                    </h3>
-                    <p>{post.content}</p>
-                  </Li>
-                </Link>
-              ))}
+          {type === 'a' &&
+            !input &&
+            aTypePost?.map((post, i) => (
+              <Link to={`/detail/${post.type}?id=${post.id}`} key={post.id}>
+                <Li>
+                  <h3>
+                    <b>{post.id}.</b> {post.title}
+                  </h3>
+                  <p>{post.content}</p>
+                </Li>
+              </Link>
+            ))}
+          {type === 'b' &&
+            !input &&
+            bTypePost?.map((post, i) => (
+              <Link to={`/detail/${post.type}?id=${post.id}`} key={post.id}>
+                <Li>
+                  <h3>
+                    <b>{post.id}.</b> {post.title}
+                  </h3>
+                  <p>{post.content}</p>
+                </Li>
+              </Link>
+            ))}
+          {input !== '' &&
+            sTypePost?.map((post, i) => (
+              <Link to={`/detail/${post.type}?id=${post.id}`} key={post.id}>
+                <Li>
+                  <h3>
+                    <b>{post.id}.</b> {post.title}
+                  </h3>
+                  <p>{post.content}</p>
+                </Li>
+              </Link>
+            ))}
         </Ul>
       </article>
     </Main>

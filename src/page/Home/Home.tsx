@@ -17,24 +17,43 @@ export default function Home(): React.ReactElement {
   const [isFocus, setIsFocus] = useState<boolean>(false)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
-  // 검색 api 디바운싱
+  // 디바운싱 커스텀 훅
   const debouncing = useDebouncing()
 
-  const handleTypeChange = (value: string) => {
+  // 탭 클릭 이벤트
+  const handleTabChange = (value: string) => {
     if (value === state.type) return
     dispatch({ type: 'SET_TYPE', payload: value })
   }
 
-  const searchPosts = async (value: string) => {
-    const res = await fetchSearchPost(state.type, value).then((v) => v.data)
-    dispatch({
-      type: 'SET_POSTS',
-      payload: { type: `${state.type}Posts`, value: res },
-    })
-  }
+  // posts 검색 요청
+  const searchPosts = useCallback(
+    async (value: string) => {
+      try {
+        const res = await fetchSearchPost(state.type, state.sPage, value).then(
+          (v) => v.data
+        )
+        dispatch({
+          type: 'SET_POSTS',
+          payload: { type: 'sPosts', value: res },
+        })
+        if (state.sPage <= 0) {
+          dispatch({ type: 'INCREASE_PAGE', payload: 's' })
+        }
+      } catch (e) {
+        console.log(e)
+      }
+    },
+    [state, dispatch]
+  )
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target
+    dispatch({
+      type: 'SET_POSTS',
+      payload: { type: 'sPosts', value: [] },
+    })
+    dispatch({ type: 'RESET_PAGE', payload: 's' })
     dispatch({ type: 'SET_KEYWORD', payload: value })
     debouncing(() => searchPosts(value), 150)
   }
@@ -53,50 +72,48 @@ export default function Home(): React.ReactElement {
     setIsFocus(false)
   }
 
-  // 최초요청 api
+  // post data 요청
   const handleFetchPosts = useCallback(async () => {
-    const res = await fetchPosts(state.type, state[`${state.type}Page`]).then(
-      (v) => v.data
-    )
-    dispatch({
-      type: 'SET_POSTS',
-      payload: { type: `${state.type}Posts`, value: res },
-    })
-    dispatch({ type: 'INCREASE_PAGE', payload: state.type })
+    try {
+      const res = await fetchPosts(state.type, state[`${state.type}Page`]).then(
+        (v) => v.data
+      )
+      dispatch({
+        type: 'SET_POSTS',
+        payload: { type: `${state.type}Posts`, value: res },
+      })
+      dispatch({ type: 'INCREASE_PAGE', payload: state.type })
+    } catch (e) {
+      console.log(e)
+    }
   }, [dispatch, state])
 
-  // 추가요청 api
-  const handleAdditionalFetchPosts = useCallback(async () => {
-    const res = await fetchPosts(state.type, state[`${state.type}Page`]).then(
-      (v) => v.data
-    )
-    dispatch({
-      type: 'ADDITIONAL_POSTS',
-      payload: { type: `${state.type}Posts`, value: res },
-    })
-  }, [dispatch, state])
-
-  // 스크롤이벤트
+  // 인피니티 스크롤 이벤트
   const scrollEvent = useCallback(async () => {
     if (state[`${state.type}Page`] > 9) return
     if (
       window.innerHeight + window.scrollY ===
       document.documentElement.scrollHeight
     ) {
-      await handleAdditionalFetchPosts()
-      dispatch({ type: 'INCREASE_PAGE', payload: state.type })
+      if (state.keyword === '') {
+        await handleFetchPosts()
+      } else {
+        await searchPosts(state.keyword)
+      }
     }
-  }, [dispatch, handleAdditionalFetchPosts, state])
+  }, [handleFetchPosts, state, searchPosts])
 
+  // scroll event Listener 이펙트
   useLayoutEffect(() => {
     window.addEventListener('scroll', scrollEvent, true)
 
     return () => window.removeEventListener('scroll', scrollEvent, true)
   }, [state, scrollEvent])
 
+  // 첫 마운트시 데이터 페치 이펙트
   useEffect(() => {
     if (
-      state[`${state.type}Posts`].length > 10 ||
+      state[`${state.type}Posts`].length >= 10 ||
       state[`${state.type}Page`] > 0
     )
       return
@@ -119,9 +136,10 @@ export default function Home(): React.ReactElement {
         onChange={onChange}
         aPosts={state.aPosts}
         bPosts={state.bPosts}
+        sPosts={state.sPosts}
         input={state.keyword}
         type={state.type}
-        handleTypeChange={handleTypeChange}
+        handleTabChange={handleTabChange}
       />
     </Container>
   )

@@ -7,8 +7,10 @@ interface Indexing {
 export interface State extends Indexing {
   aPosts: PostType[]
   bPosts: PostType[]
+  sPosts: PostType[]
   aPage: number
   bPage: number
+  sPage: number
   keyword: string
   type: string
 }
@@ -16,8 +18,10 @@ export interface State extends Indexing {
 export const initial_state: State = {
   aPosts: [],
   bPosts: [],
+  sPosts: [],
   aPage: 0,
   bPage: 0,
+  sPage: 0,
   keyword: '',
   type: 'a',
 }
@@ -25,7 +29,6 @@ export const initial_state: State = {
 export type Actions =
   | { type: 'RESER' }
   | { type: 'SET_POSTS'; payload: { type: string; value: PostType[] } }
-  | { type: 'ADDITIONAL_POSTS'; payload: { type: string; value: PostType[] } }
   | { type: 'SET_KEYWORD'; payload: string }
   | { type: 'INCREASE_PAGE'; payload: string }
   | { type: 'RESET_PAGE'; payload: string }
@@ -39,12 +42,6 @@ export function reducer(state: State, action: Actions): State {
       return initial_state
 
     case 'SET_POSTS':
-      return {
-        ...state,
-        [action.payload.type]: action.payload.value,
-      }
-
-    case 'ADDITIONAL_POSTS':
       return {
         ...state,
         [action.payload.type]: [
