@@ -8,14 +8,16 @@ import fetchPosts from '../../api/fetchPosts'
 import fetchSearchPost from '../../api/fetchSearchPost'
 
 import { useDispatchContext, useStateContext } from '../../App.Context'
-import { useDebouncing } from '../../hooks'
+// import { useDebouncing } from '../../hooks'
+
+let timer: any
 
 export default function Home(): React.ReactElement {
   const state = useStateContext()
   const dispatch = useDispatchContext()
 
   // 디바운싱 커스텀 훅
-  const debouncing = useDebouncing()
+  // const debouncing = useDebouncing()
 
   const [isFocus, setIsFocus] = useState<boolean>(false)
   const inputRef = useRef<HTMLInputElement | null>(null)
@@ -68,7 +70,7 @@ export default function Home(): React.ReactElement {
       payload: 'sPosts',
     })
     dispatch({ type: 'RESET_PAGE', payload: 's' })
-    debouncing(() => searchPosts(value, 0), 150)
+    // debouncing(() => searchPosts(value, 0), 150)
   }
 
   // post data 요청
@@ -109,6 +111,20 @@ export default function Home(): React.ReactElement {
   }, [state, scrollEvent])
 
   useEffect(() => {
+    if (state.keyword === '' || state.sPosts.length >= 10) return
+
+    if (timer) {
+      clearTimeout(timer)
+    }
+
+    timer = setTimeout(() => {
+      searchPosts(state.keyword, 0)
+    }, 150)
+
+    return () => clearTimeout(timer)
+  }, [state.keyword])
+
+  useEffect(() => {
     if (
       state[`${state.type}Posts`].length >= 10 ||
       state[`${state.type}Page`] > 0
@@ -118,6 +134,7 @@ export default function Home(): React.ReactElement {
     handleFetchPosts()
   }, [handleFetchPosts, state, searchPosts])
 
+  console.log(state)
   return (
     <Container id="home">
       <Header title="게시물을 검색해보세요" />

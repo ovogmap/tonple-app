@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export function useDebouncing() {
   const [timer, setTimer] = useState<NodeJS.Timeout | null>(null)
@@ -16,4 +16,22 @@ export function useDebouncing() {
   }
 
   return func
+}
+
+export function useTestDe(callback: any, delay: number) {
+  // function func(callback: any, delay: number ) {
+
+  // }
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
+
+  const func = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+    }
+
+    setTimeout(() => {
+      callback()
+    }, delay)
+  }
 }
