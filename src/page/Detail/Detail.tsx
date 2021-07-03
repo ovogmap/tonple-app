@@ -8,8 +8,8 @@ import queryString, { ParsedQuery } from 'query-string'
 import fetchPostOne from '../../api/fetchPostOne'
 
 export default function Detail() {
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
+  const [title, setTitle] = useState<string>('')
+  const [content, setContent] = useState<string>('')
 
   const history = useHistory()
   const type = useRouteMatch<{ type: string }>().params.type
@@ -17,10 +17,14 @@ export default function Detail() {
   const id: ParsedQuery<string> = queryString.parse(location.search)
 
   const fetchPostOneData = async (type: string, id: string) => {
-    const res = await fetchPostOne(type, id)
-    const { title, content } = res.data
-    setTitle(title)
-    setContent(content)
+    try {
+      const res = await fetchPostOne(type, id)
+      const { title, content } = res.data
+      setTitle(title)
+      setContent(content)
+    } catch (e) {
+      console.log(e)
+    }
   }
 
   const handleGoBack = () => {
