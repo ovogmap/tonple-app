@@ -41,17 +41,11 @@ export default function Home(): React.ReactElement {
     dispatch({ type: 'SET_TYPE', payload: value })
   }
 
-  const rrr = useCallback(() => {
-    return new Promise((res) => {
-      res(dispatch({ type: 'RESET_PAGE', payload: 's' }))
-    })
-  }, [dispatch])
-
   // posts 검색 요청
   const searchPosts = useCallback(
-    async (value: string) => {
+    async (value: string, page: number) => {
       try {
-        const res = await fetchSearchPost(state.type, state.sPage, value).then(
+        const res = await fetchSearchPost(state.type, page, value).then(
           (v) => v.data
         )
         dispatch({
@@ -74,7 +68,7 @@ export default function Home(): React.ReactElement {
       payload: 'sPosts',
     })
     dispatch({ type: 'RESET_PAGE', payload: 's' })
-    debouncing(() => searchPosts(value), 150)
+    debouncing(() => searchPosts(value, 0), 150)
   }
 
   // post data 요청
@@ -103,7 +97,7 @@ export default function Home(): React.ReactElement {
       if (state.keyword === '') {
         await handleFetchPosts()
       } else {
-        await searchPosts(state.keyword)
+        await searchPosts(state.keyword, state.sPage)
       }
     }
   }, [handleFetchPosts, state, searchPosts])
@@ -120,8 +114,11 @@ export default function Home(): React.ReactElement {
       state[`${state.type}Page`] > 0
     )
       return
+
     handleFetchPosts()
-  }, [handleFetchPosts, state])
+  }, [handleFetchPosts, state, searchPosts])
+
+  console.log(state)
 
   return (
     <Container id="home">
