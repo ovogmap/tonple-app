@@ -118,8 +118,6 @@ export default function Home(): React.ReactElement {
     handleFetchPosts()
   }, [handleFetchPosts, state, searchPosts])
 
-  console.log(state)
-
   return (
     <Container id="home">
       <Header title="게시물을 검색해보세요" />
