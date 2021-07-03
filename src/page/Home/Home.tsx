@@ -14,50 +14,13 @@ export default function Home(): React.ReactElement {
   const state = useStateContext()
   const dispatch = useDispatchContext()
 
-  const [isFocus, setIsFocus] = useState<boolean>(false)
-  const inputRef = useRef<HTMLInputElement | null>(null)
-
   // 디바운싱 커스텀 훅
   const debouncing = useDebouncing()
 
-  // 탭 클릭 이벤트
-  const handleTabChange = (value: string) => {
-    if (value === state.type) return
-    dispatch({ type: 'SET_TYPE', payload: value })
-  }
+  const [isFocus, setIsFocus] = useState<boolean>(false)
+  const inputRef = useRef<HTMLInputElement | null>(null)
 
-  // posts 검색 요청
-  const searchPosts = useCallback(
-    async (value: string) => {
-      try {
-        const res = await fetchSearchPost(state.type, state.sPage, value).then(
-          (v) => v.data
-        )
-        dispatch({
-          type: 'SET_POSTS',
-          payload: { type: 'sPosts', value: res },
-        })
-        if (state.sPage <= 0) {
-          dispatch({ type: 'INCREASE_PAGE', payload: 's' })
-        }
-      } catch (e) {
-        console.log(e)
-      }
-    },
-    [state, dispatch]
-  )
-
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target
-    dispatch({
-      type: 'SET_POSTS',
-      payload: { type: 'sPosts', value: [] },
-    })
-    dispatch({ type: 'RESET_PAGE', payload: 's' })
-    dispatch({ type: 'SET_KEYWORD', payload: value })
-    debouncing(() => searchPosts(value), 150)
-  }
-
+  // input focus 이벤트.
   const inputFocus = () => {
     if (inputRef.current) {
       inputRef.current.focus()
@@ -70,6 +33,48 @@ export default function Home(): React.ReactElement {
 
   const handleBlur = () => {
     setIsFocus(false)
+  }
+
+  // 탭 클릭 이벤트
+  const handleTabChange = (value: string) => {
+    if (value === state.type) return
+    dispatch({ type: 'SET_TYPE', payload: value })
+  }
+
+  const rrr = useCallback(() => {
+    return new Promise((res) => {
+      res(dispatch({ type: 'RESET_PAGE', payload: 's' }))
+    })
+  }, [dispatch])
+
+  // posts 검색 요청
+  const searchPosts = useCallback(
+    async (value: string) => {
+      try {
+        const res = await fetchSearchPost(state.type, state.sPage, value).then(
+          (v) => v.data
+        )
+        dispatch({
+          type: 'SET_POSTS',
+          payload: { type: 'sPosts', value: res },
+        })
+        dispatch({ type: 'INCREASE_PAGE', payload: 's' })
+      } catch (e) {
+        console.log(e)
+      }
+    },
+    [state, dispatch]
+  )
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target
+    dispatch({ type: 'SET_KEYWORD', payload: value })
+    dispatch({
+      type: 'RESET_POSTS',
+      payload: 'sPosts',
+    })
+    dispatch({ type: 'RESET_PAGE', payload: 's' })
+    debouncing(() => searchPosts(value), 150)
   }
 
   // post data 요청
@@ -88,7 +93,7 @@ export default function Home(): React.ReactElement {
     }
   }, [dispatch, state])
 
-  // 인피니티 스크롤 이벤트
+  // 스크롤 이벤트
   const scrollEvent = useCallback(async () => {
     if (state[`${state.type}Page`] > 9) return
     if (
@@ -103,14 +108,12 @@ export default function Home(): React.ReactElement {
     }
   }, [handleFetchPosts, state, searchPosts])
 
-  // scroll event Listener 이펙트
   useLayoutEffect(() => {
     window.addEventListener('scroll', scrollEvent, true)
 
     return () => window.removeEventListener('scroll', scrollEvent, true)
   }, [state, scrollEvent])
 
-  // 첫 마운트시 데이터 페치 이펙트
   useEffect(() => {
     if (
       state[`${state.type}Posts`].length >= 10 ||
@@ -119,10 +122,6 @@ export default function Home(): React.ReactElement {
       return
     handleFetchPosts()
   }, [handleFetchPosts, state])
-
-  useEffect(() => {
-    console.log('state', state)
-  }, [state])
 
   return (
     <Container id="home">

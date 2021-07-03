@@ -16,7 +16,7 @@ export default function Header({ title }: HeaderProps) {
 const Container = styled.header`
   width: 100%;
   text-align: center;
-  margin: 35px;
+  margin: 2.1875rem;
 `
 
 const Title = styled.h1`

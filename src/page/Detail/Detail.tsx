@@ -6,21 +6,17 @@ import { useLocation, useRouteMatch } from 'react-router-dom'
 import queryString, { ParsedQuery } from 'query-string'
 
 import fetchPostOne from '../../api/fetchPostOne'
-import { useDispatchContext, useStateContext } from '../../App.Context'
 
 export default function Detail() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-
-  const state = useStateContext()
-  const dispatch = useDispatchContext()
 
   const history = useHistory()
   const type = useRouteMatch<{ type: string }>().params.type
   const location = useLocation()
   const id: ParsedQuery<string> = queryString.parse(location.search)
 
-  const fetchData = async (type: string, id: string) => {
+  const fetchPostOneData = async (type: string, id: string) => {
     const res = await fetchPostOne(type, id)
     const { title, content } = res.data
     setTitle(title)
@@ -29,14 +25,11 @@ export default function Detail() {
 
   const handleGoBack = () => {
     history.goBack()
-    if (state.page === 1) {
-      dispatch({ type: 'RESET_PAGE' })
-    }
   }
 
   useEffect(() => {
     if (!type || !id) return
-    fetchData(type, id.id as string)
+    fetchPostOneData(type, id.id as string)
   }, [type, id])
 
   if (title === '' || content === '') return null
@@ -64,16 +57,16 @@ const Container = styled.section`
 
 const Content = styled.article`
   width: 100%;
-  padding: 30px;
+  padding: 1.875rem;
   border: 1px solid ${colors.line};
-  border-radius: 5px;
+  border-radius: 0.3125rem;
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
 
   h2 {
     font-size: 2rem;
     font-weight: 600;
-    margin-bottom: 15px;
+    margin-bottom: 0.9375rem;
   }
 
   p {
@@ -84,9 +77,9 @@ const Content = styled.article`
 
 const BackBtn = styled.button`
   background: ${colors.main};
-  padding: 10px 20px;
+  padding: 0.625rem 1.25rem;
   color: #fff;
-  border-radius: 3px;
+  border-radius: 0.3125rem;
   font-size: 1rem;
   font-weight: 700;
 

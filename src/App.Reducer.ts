@@ -29,6 +29,7 @@ export const initial_state: State = {
 export type Actions =
   | { type: 'RESER' }
   | { type: 'SET_POSTS'; payload: { type: string; value: PostType[] } }
+  | { type: 'RESET_POSTS'; payload: string }
   | { type: 'SET_KEYWORD'; payload: string }
   | { type: 'INCREASE_PAGE'; payload: string }
   | { type: 'RESET_PAGE'; payload: string }
@@ -48,6 +49,12 @@ export function reducer(state: State, action: Actions): State {
           ...state[action.payload.type],
           ...action.payload.value,
         ],
+      }
+
+    case 'RESET_POSTS':
+      return {
+        ...state,
+        [action.payload]: [],
       }
 
     case 'SET_KEYWORD':

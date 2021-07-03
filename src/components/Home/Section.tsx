@@ -81,42 +81,32 @@ function Section({
         <Ul>
           {type === 'a' &&
             !input &&
-            aTypePost?.map((post, i) => (
-              <Link to={`/detail/${post.type}?id=${post.id}`} key={post.id}>
-                <Li>
-                  <h3>
-                    <b>{post.id}.</b> {post.title}
-                  </h3>
-                  <p>{post.content}</p>
-                </Li>
-              </Link>
-            ))}
+            aTypePost?.map((post, i) => <ListItem post={post} key={post.id} />)}
           {type === 'b' &&
             !input &&
-            bTypePost?.map((post, i) => (
-              <Link to={`/detail/${post.type}?id=${post.id}`} key={post.id}>
-                <Li>
-                  <h3>
-                    <b>{post.id}.</b> {post.title}
-                  </h3>
-                  <p>{post.content}</p>
-                </Li>
-              </Link>
-            ))}
+            bTypePost?.map((post, i) => <ListItem post={post} key={post.id} />)}
           {input !== '' &&
-            sTypePost?.map((post, i) => (
-              <Link to={`/detail/${post.type}?id=${post.id}`} key={post.id}>
-                <Li>
-                  <h3>
-                    <b>{post.id}.</b> {post.title}
-                  </h3>
-                  <p>{post.content}</p>
-                </Li>
-              </Link>
-            ))}
+            sTypePost?.map((post, i) => <ListItem post={post} key={post.id} />)}
         </Ul>
       </article>
     </Main>
+  )
+}
+
+type ListItemProps = {
+  post: PostType
+}
+
+function ListItem({ post }: ListItemProps) {
+  return (
+    <Link to={`/detail/${post.type}?id=${post.id}`}>
+      <Li>
+        <h3>
+          <b>{post.id}.</b> {post.title}
+        </h3>
+        <p>{post.content}</p>
+      </Li>
+    </Link>
   )
 }
 
@@ -135,20 +125,20 @@ const Main = styled.main`
 `
 
 const Ul = styled.ul`
-  padding: 20px;
+  padding: 1.25rem;
   border: 1px solid ${colors.line};
-  border-radius: 5px;
+  border-radius: 0.3125rem;
   box-shadow: inset 3px 3px 3px 0px rgb(243, 243, 243, 0.6),
     2px 2px 3px rgb(241, 241, 241, 0.6);
 `
 
 const Li = styled.li`
-  padding: 15px;
+  padding: 0.9375rem;
 
   h3 {
     font-weight: 400;
     font-size: 1rem;
-    margin-bottom: 10px;
+    margin-bottom: 0.625rem;
     color: #000;
   }
 
@@ -161,7 +151,7 @@ const Li = styled.li`
     text-overflow: ellipsis;
     word-wrap: break-word;
     display: -webkit-box;
-    -webkit-line-clamp: 3; /* ellipsis line */
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
 
     line-height: 1.2em;
@@ -175,12 +165,12 @@ const Li = styled.li`
 
 const Tab = styled.div`
   border-bottom: 1px solid ${colors.line};
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
 `
 
 const TabBtn = styled.button<{ active: boolean }>`
-  padding: 15px 15px;
-  border-radius: 5px;
+  padding: 0.9375rem 0.9375rem;
+  border-radius: 0.3125rem;
   color: ${(props) => (props.active ? colors.main : colors.default)};
   font-weight: 800;
 
